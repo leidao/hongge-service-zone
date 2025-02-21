@@ -1,0 +1,35 @@
+
+
+// styles/element/index.scss
+/* 只需要重写你需要的即可 */
+
+@forward 'element-plus/theme-chalk/src/common/var.scss' with (
+  $colors: (
+    "primary": (
+      "base": #02c084,
+    ),
+    "success": (
+      "base": #8bc34a,
+    ),
+    "warning": (
+      "base": #ffc107,
+    ),
+    "danger": (
+      "base": #f56c6c,
+    ),
+    "error": (
+      "base": #ff5722,
+    ),
+    "info": (
+      "base": #909399,
+    ),
+  )
+);
+:root {
+ 
+}
+
+
+// 如果只是按需导入，则可以忽略以下内容。
+// 如果你想导入所有样式:
+// @use "element-plus/theme-chalk/src/index.scss" as *;
