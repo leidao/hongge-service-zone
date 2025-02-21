@@ -61,9 +61,3 @@ src/
 - 使用 Element Plus 组件库构建界面
 - 实时时间显示使用 Day.js 处理
 - 3D 场景更新使用 requestAnimationFrame 实现流畅渲染
-
-```sh
-pnpm install
-
-pnpm serve
-```
