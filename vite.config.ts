@@ -1,15 +1,13 @@
-
-
 import { fileURLToPath, URL } from 'node:url'
 
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import vueDevTools from 'vite-plugin-vue-devtools'
-import { resolve } from "path";
+import { resolve } from 'path'
 import { presetUno } from 'unocss'
 import Unocss from 'unocss/vite'
-import { createSvgIconsPlugin } from "vite-plugin-svg-icons";
+import { createSvgIconsPlugin } from 'vite-plugin-svg-icons'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
@@ -25,23 +23,23 @@ export default defineConfig({
     vueDevTools(),
     Unocss({
       presets: [
-        presetUno()
+        presetUno(),
         // ...custom presets
-      ]
+      ],
       // safelist: safelist
     }),
     createSvgIconsPlugin({
       // 指定需要缓存的图标文件夹
       iconDirs: [resolve(process.cwd(), 'src/assets/icons')],
       // 指定symbolId格式
-      symbolId: "icon-[dir]-[name]",
+      symbolId: 'icon-[dir]-[name]',
     }),
     // 配置插件
     AutoImport({
       resolvers: [ElementPlusResolver()],
     }),
     Components({
-      resolvers: [ElementPlusResolver({ importStyle: "sass" })],
+      resolvers: [ElementPlusResolver({ importStyle: 'sass' })],
     }),
     ElementPlus({
       useSource: true,
@@ -60,24 +58,28 @@ export default defineConfig({
     strictPort: false,
     /** 接口代理 */
     proxy: {
-      "/api": {
+      '/api': {
         // target: "http://jdphtest.nat300.top/",
         // target: "http://1081de84.r10.cpolar.top",
-        target: "http://mm7rhy.natappfree.cc", //穿透地址
+        target: 'http://mm7rhy.natappfree.cc', //穿透地址
         // target: "http://192.168.43.37:8080/",
         // target: "http://localhost:3333/",
         // target: "http://10.41.233.36:8080/", // 内网地址
         ws: true,
         /** 是否允许跨域 */
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, "")
-      }
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
     },
     /** 预热常用文件，提高初始页面加载速度 */
     warmup: {
-      clientFiles: ["./src/layouts/**/*.vue"]
-    }
+      clientFiles: ['./src/layouts/**/*.vue'],
+    },
   },
+  build: {
+    outDir: 'docs',
+  },
+  base: '/hongge-service-zone',
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
@@ -89,5 +91,5 @@ export default defineConfig({
         additionalData: `@use "@/assets/element.scss" as *;`,
       },
     },
-  }
+  },
 })

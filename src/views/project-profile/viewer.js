@@ -591,7 +591,7 @@ export default class Viewer {
 
     if (this.gltfScene && this.isRotating === 1) {
       // 让相机始终看向场景中心
-      this.scene.rotation.y += 0.01
+      // this.scene.rotation.y += 0.01
     }
     this.render()
   }
