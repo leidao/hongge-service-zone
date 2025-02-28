@@ -22,6 +22,7 @@
     "@types/lodash": "^4.17.13",
     "autofit.js": "^3.2.2",
     "axios": "^1.7.9",
+    "camera-controls": "^2.10.0",
     "day": "^0.0.2",
     "dayjs": "^1.11.13",
     "echarts": "^5.5.1",

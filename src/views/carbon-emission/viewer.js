@@ -517,15 +517,15 @@ export default class Viewer {
     this.fans.forEach((fan, i) => {
       fan.rotation.y += this.step[i]
     })
-    if (this.solar_pipeline1) this.solar_pipeline1.offset.x += 0.01
-    if (this.solar_pipeline2) this.solar_pipeline2.offset.x += 0.01
-    if (this.wind_pipeline) this.wind_pipeline.offset.x -= 0.01
-    if (this.grid_pipeline) this.grid_pipeline.offset.x -= 0.01
-    if (this.building_pipeline) this.building_pipeline.offset.x -= 0.01
+    // if (this.solar_pipeline1) this.solar_pipeline1.offset.x += 0.01
+    // if (this.solar_pipeline2) this.solar_pipeline2.offset.x += 0.01
+    // if (this.wind_pipeline) this.wind_pipeline.offset.x -= 0.01
+    // if (this.grid_pipeline) this.grid_pipeline.offset.x -= 0.01
+    // if (this.building_pipeline) this.building_pipeline.offset.x -= 0.01
 
-    if (this.gltfScene && this.isRotating === 1) {
-      this.scene.rotation.y += 0.01
-    }
+    // if (this.gltfScene && this.isRotating === 1) {
+    //   this.scene.rotation.y += 0.01
+    // }
     this.render()
   }
   setTargetDirection(pt) {

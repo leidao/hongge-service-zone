@@ -29,6 +29,9 @@ importers:
       axios:
         specifier: ^1.7.9
         version: 1.7.9
+      camera-controls:
+        specifier: ^2.10.0
+        version: 2.10.0(three@0.171.0)
       day:
         specifier: ^0.0.2
         version: 0.0.2
@@ -1584,6 +1587,11 @@ packages:
   callsites@3.1.0:
     resolution: {integrity: sha512-P8BjAsXvZS+VIDUI11hHCQEv74YT67YUi5JJFNWIqL235sBmjX4+qx9Muvls5ivyNENctx46xQLQ3aTuE7ssaQ==}
     engines: {node: '>=6'}
+
+  camera-controls@2.10.0:
+    resolution: {integrity: sha512-vBQ5Daxv4KRsn07U/VqkPxoqD8U+S++0oq5NLf4HevMuh/BDta3rg49e/P564AMzFPBePQeXDKOkiIezRgyDwg==}
+    peerDependencies:
+      three: '>=0.126.1'
 
   caniuse-lite@1.0.30001687:
     resolution: {integrity: sha512-0S/FDhf4ZiqrTUiQ39dKeUjYRjkv7lOZU1Dgif2rIqrTzX/1wV2hfKu9TOm1IHkdSijfLswxTFzl/cvir+SLSQ==}
@@ -5316,6 +5324,10 @@ snapshots:
       get-intrinsic: 1.2.6
 
   callsites@3.1.0: {}
+
+  camera-controls@2.10.0(three@0.171.0):
+    dependencies:
+      three: 0.171.0
 
   caniuse-lite@1.0.30001687: {}
 

@@ -19,6 +19,7 @@ declare module 'vue' {
     ElImage: typeof import('element-plus/es')['ElImage']
     ElPopover: typeof import('element-plus/es')['ElPopover']
     ElSpace: typeof import('element-plus/es')['ElSpace']
+    ElTooltip: typeof import('element-plus/es')['ElTooltip']
     ExteriorShell: typeof import('./src/components/exteriorShell/index.vue')['default']
     Left: typeof import('./src/components/borderBox/left.vue')['default']
     Right: typeof import('./src/components/borderBox/right.vue')['default']

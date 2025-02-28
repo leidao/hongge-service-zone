@@ -7,8 +7,10 @@
  */
 import { createApp } from 'vue'
 import * as THREE from 'three'
-import Popup from './popup.vue'
+import PowerPopup from './powerPopup.vue'
+import LinePopup from './linePopup.vue'
 import $Bus from '@/utils/eventBus'
+// import CameraControls from 'camera-controls'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
@@ -18,8 +20,8 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js'
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js'
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js'
-import gsap from 'gsap'
 import { LoadingBar } from './LoadingBar'
+// CameraControls.install({ THREE: THREE })
 const config = {
   /** 环境光 */
   AMBIENT_LIGHT_COLOR: 0xe4e4e4,
@@ -49,6 +51,63 @@ const darkMaterial = new THREE.MeshBasicMaterial({ color: 'black' })
 const materials = {}
 const mouse = new THREE.Vector2()
 
+// 创建画布来处理图片数据
+const canvas = document.createElement('canvas')
+const ctx = canvas.getContext('2d')
+const updateMaterialMap = (child) => {
+  // 获取原始贴图
+  const originalTexture = child.material.map
+
+  // 设置画布尺寸为贴图尺寸
+  canvas.width = originalTexture.image.width
+  canvas.height = originalTexture.image.height
+
+  // 将原始贴图绘制到画布上
+  ctx.drawImage(originalTexture.image, 0, 0)
+
+  // 下载原始贴图
+  // const originalLink = document.createElement('a')
+  // originalLink.download = `original_${child.name}.png`
+  // originalLink.href = canvas.toDataURL('image/png')
+  // originalLink.click()
+
+  // 获取像素数据
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+  const data = imageData.data
+
+  // 修改每个像素的颜色为红色，保持原有的alpha值
+  for (let i = 0; i < data.length; i += 4) {
+    // console.log('data===', data[i], data[i + 1], data[i + 2], data[i + 3])
+    if (
+      (data[i] > 110 || data[i] < 130) &&
+      (data[i + 1] > 230 || data[i + 1] < 250) &&
+      (data[i + 2] > 90 || data[i + 2] < 171)
+    ) {
+      data[i] = 255 // R
+      data[i + 1] = 0 // G
+      data[i + 2] = 0 // B
+      // data[i + 3] 保持不变 (Alpha)
+    }
+  }
+
+  // 将修改后的像素数据放回画布
+  ctx.putImageData(imageData, 0, 0)
+
+  // 下载修改后的贴图
+  // const modifiedLink = document.createElement('a')
+  // modifiedLink.download = `modified_${child.name}.png`
+  // modifiedLink.href = canvas.toDataURL('image/png')
+  // modifiedLink.click()
+
+  // 创建新的纹理
+  const newTexture = new THREE.Texture(canvas)
+  newTexture.needsUpdate = true
+  newTexture.wrapS = THREE.RepeatWrapping
+  newTexture.wrapT = THREE.RepeatWrapping
+  newTexture.repeat.set(1, 1)
+  child.material.map = newTexture
+}
+
 export default class Viewer {
   /** 场景 */
   scene
@@ -76,15 +135,15 @@ export default class Viewer {
   onProgress
   gltfScene
   trees = []
-  /** 1==旋转  2==不旋转  3==回到原始角度 */
-  isRotating = 2
-  rotationY = 0
-  angle = 0
+  /** 旋转  暂停   */
+  status = '暂停'
   fans = []
-  windForce = []
   intersectObjects = []
   step = [0.05, 0.06, 0.045]
   bloomObjects = [] // 用于存储发光物体
+  /** 计算路径 */
+  calculatedPath = []
+
   constructor(container) {
     this.container = container
     this.clock = new THREE.Clock()
@@ -94,6 +153,7 @@ export default class Viewer {
     this.loadSky()
     this.listen()
     this.initComposer()
+    // this.useOrbitControls()
     this.raycaster = new THREE.Raycaster()
     this.loadingBar = new LoadingBar()
     this.solarPanelPosition = null // 新增：存储光伏板位置
@@ -239,6 +299,7 @@ export default class Viewer {
    * @function: 使用控制器
    */
   useOrbitControls = () => {
+    // this.cameraControls = new CameraControls(this.camera, this.renderer.domElement)
     // 创建控件对象
     this.controls = new OrbitControls(this.camera, this.labelRenderer.domElement)
     // this.controls.maxPolarAngle = Math.PI * 0.40;
@@ -250,21 +311,21 @@ export default class Viewer {
     // this.controls.enablePan = false
     // this.controls.enableRotate = false
     //监听鼠标、键盘事件
-    this.controls.addEventListener('change', () => {
-      this.render()
-    })
-    this.controls.addEventListener('start', () => {
-      this.isOpterating = true
-    })
-    this.controls.addEventListener('end', () => {
-      this.isOpterating = false
-    })
+    // this.controls.addEventListener('change', () => {
+    // this.render()
+    // console.log('change', this.camera.position)
+    // })
+    // this.controls.addEventListener('start', () => {
+    //   this.isOpterating = true
+    // })
+    // this.controls.addEventListener('end', () => {
+    //   this.isOpterating = false
+    // })
   }
   /**
    * @function: 更新场景
    */
   render = () => {
-    // 先渲染天空盒
     // this.renderer.render(this.scene, this.camera)
     // 然后渲染辉光效果
     let background = this.scene.background
@@ -276,10 +337,11 @@ export default class Viewer {
     this.scene.environment = background
     this.scene.traverse(this.restoreMaterial)
     this.finalComposer.render()
-    this.labelRenderer.render(this.scene, this.camera)
+    this.labelRenderer && this.labelRenderer.render(this.scene, this.camera)
 
     // console.log('====', this.renderer.info.render.calls)
   }
+
   /**
    * @function: 自适应窗口
    */
@@ -287,7 +349,7 @@ export default class Viewer {
     const { clientWidth: width, clientHeight: height } = this.container
     const k = width / height
     this.renderer.setSize(width, height)
-    this.labelRenderer.setSize(width, height)
+    this.labelRenderer && this.labelRenderer.setSize(width, height)
     this.camera.aspect = k
     this.camera.updateProjectionMatrix()
     this.render()
@@ -301,24 +363,35 @@ export default class Viewer {
       }, 1)
     })
   }
-  onPointerDown = (event) => {
+  onPointerMove = (event) => {
     const { left, top } = this.container.getBoundingClientRect()
     const { clientWidth: width, clientHeight: height } = this.container
     mouse.x = ((event.clientX - left) / width) * 2 - 1
     mouse.y = -((event.clientY - top) / height) * 2 + 1
-    // console.log('event', this.scene.children)
 
     this.raycaster.setFromCamera(mouse, this.camera)
-    // const intersects = this.raycaster.intersectObjects(this.windForce)
     const intersects = this.raycaster.intersectObjects(this.intersectObjects)
-    // console.log('intersects', intersects)
-    // debugger
     if (intersects.length > 0) {
       const object = intersects[0].object
-      if (this.intersectObj === object) {
-        this.fly()
+      if (this.intersectObj === object) return
+      if (object.name.endsWith('管道')) {
+        const app = createApp(LinePopup, {
+          src: '',
+          name: '',
+        })
+        const mountElement = document.createElement('div')
+        app.mount(mountElement)
+
+        if (this.objectCSS) {
+          this.gltfScene.remove(this.objectCSS)
+          this.objectCSS = null
+        }
+        this.objectCSS = new CSS2DObject(mountElement)
+        this.objectCSS.name = '2d'
+        this.objectCSS.scale.set(0.1, 0.1, 0.1)
+        this.objectCSS.position.copy(intersects[0].point)
       } else {
-        const app = createApp(Popup, {
+        const app = createApp(PowerPopup, {
           src: object.userData.map.source.data.src,
           name: object.userData.name,
         })
@@ -332,33 +405,28 @@ export default class Viewer {
         this.objectCSS = new CSS2DObject(mountElement)
         this.objectCSS.name = '2d'
         this.objectCSS.scale.set(0.1, 0.1, 0.1)
-        this.gltfScene.add(this.objectCSS)
-
-        // 调整位置使左上角对齐
-        // const offset = new THREE.Vector3(-4, 1, 1) // 左上角偏移
-        // offset.multiplyScalar(this.objectCSS.scale.x) // 根据缩放比例调整偏移量
         this.objectCSS.position.copy(object.position)
       }
 
+      this.gltfScene.add(this.objectCSS)
+
       this.intersectObj = object
     } else {
+      if (!this.intersectObj) return
       this.intersectObj = null
-      if (this.objectCSS) {
-        this.gltfScene.remove(this.objectCSS)
-        this.objectCSS = null
-      }
+      if (!this.objectCSS) return
+      this.gltfScene.remove(this.objectCSS)
+      this.objectCSS = null
     }
     this.render()
   }
   listen = () => {
-    $Bus.on('view', this.fly)
     window.addEventListener('resize', this.onResize)
-    this.container.addEventListener('pointerdown', this.onPointerDown)
+    this.container.addEventListener('pointermove', this.onPointerMove)
   }
   destroy = () => {
-    $Bus.off('view', this.fly)
     window.removeEventListener('resize', this.onResize)
-    this.container.removeEventListener('pointerdown', this.onPointerDown)
+    this.container.removeEventListener('pointermove', this.onPointerMove)
   }
 
   darkenNonBloomed(obj) {
@@ -383,13 +451,14 @@ export default class Viewer {
     this.gltfLoader.load(
       'serviceArea.glb',
       (gltf) => {
-        this.gltfScene = gltf.scene
-        this.scene.add(gltf.scene)
-
+        const gltfScene = gltf.scene
+        this.scene.add(gltfScene)
+        this.render()
         gltf.scene.traverse((child) => {
           if (child.isMesh) {
             child.castShadow = true
             child.receiveShadow = true
+
             if (child.name.startsWith('扇叶')) {
               this.fans.push(child)
             }
@@ -402,36 +471,31 @@ export default class Viewer {
               this.bloomObjects.push(child)
             }
             if (child.name.startsWith('管道')) {
-              child.material.map.wrapS = THREE.RepeatWrapping //每个都重复
+              // 获取原始贴图
+              child.material.map.wrapS = THREE.RepeatWrapping
               child.material.map.wrapT = THREE.RepeatWrapping
               child.material.map.repeat.set(1, 1)
               child.material.map.needsUpdate = true
 
-              // child.visible = false
               this.bloomObjects.push(child)
-
+              this.intersectObjects.push(child)
               child.layers.enable(BLOOM_SCENE)
               if (['管道'].includes(child.name)) {
-                // this.solar_pipeline1 = new THREE.TextureLoader().load('img/221.png')
-                // this.solar_pipeline1.wrapS = this.solar_pipeline1.wrapT = THREE.RepeatWrapping //每个都重复
-                // this.solar_pipeline1.repeat.set(1, 1)
-                // this.solar_pipeline1.needsUpdate = true
-                // child.material.map = this.solar_pipeline1
+                child.name = '光伏管道'
+                // updateMaterialMap(child)
 
                 this.solar_pipeline1 = child.material.map
               } else if (['管道005'].includes(child.name)) {
+                child.name = '光伏管道'
                 this.solar_pipeline2 = child.material.map
               } else if (['管道002'].includes(child.name)) {
-                // this.wind_pipeline = new THREE.TextureLoader().load('img/221.png')
-                // this.wind_pipeline.wrapS = this.wind_pipeline.wrapT = THREE.RepeatWrapping //每个都重复
-                // this.wind_pipeline.repeat.set(1, 1)
-                // this.wind_pipeline.needsUpdate = true
-                // child.material.map = this.wind_pipeline
-
+                child.name = '风力管道'
                 this.wind_pipeline = child.material.map
               } else if (['管道004'].includes(child.name)) {
+                child.name = '电网管道'
                 this.grid_pipeline = child.material.map
               } else {
+                child.name = '建筑管道'
                 this.building_pipeline = child.material.map
               }
             }
@@ -443,9 +507,9 @@ export default class Viewer {
                 transparent: true,
               })
               const sprite = new THREE.Sprite(spriteMaterial)
-              sprite.scale.set(2, 2, 2) // 设置精灵大小
+              sprite.scale.set(1.8, 1.8, 1.8) // 设置精灵大小
               sprite.position.copy(child.position) // 复制充电桩模型的位置
-              this.gltfScene.add(sprite) // 将精灵添加到场景中
+              gltfScene.add(sprite) // 将精灵添加到场景中
               child.visible = false
               // sprite.visible = false
               sprite.userData = {
@@ -462,9 +526,9 @@ export default class Viewer {
                 transparent: true,
               })
               const sprite = new THREE.Sprite(spriteMaterial)
-              sprite.scale.set(2, 2, 2) // 设置精灵大小
+              sprite.scale.set(1.8, 1.8, 1.8) // 设置精灵大小
               sprite.position.copy(child.position) // 复制充电桩模型的位置
-              this.gltfScene.add(sprite) // 将精灵添加到场景中
+              gltfScene.add(sprite) // 将精灵添加到场景中
               child.visible = false
               // sprite.visible = false
               sprite.userData = {
@@ -481,9 +545,9 @@ export default class Viewer {
                 transparent: true,
               })
               const sprite = new THREE.Sprite(spriteMaterial)
-              sprite.scale.set(2, 2, 2) // 设置精灵大小
+              sprite.scale.set(1.8, 1.8, 1.8) // 设置精灵大小
               sprite.position.copy(child.position) // 复制充电桩模型的位置
-              this.gltfScene.add(sprite) // 将精灵添加到场景中
+              gltfScene.add(sprite) // 将精灵添加到场景中
               child.visible = false
               // sprite.visible = false
               sprite.userData = {
@@ -492,7 +556,16 @@ export default class Viewer {
               }
               this.intersectObjects.push(sprite)
             }
+            if (child.name === '充电桩光伏板001') {
+              child.material.transparent = true
+              this.solarPanelA = child
+            }
+            if (child.name === '充电桩光伏板') {
+              child.material.transparent = true
+              this.solarPanelB = child
+            }
           }
+
           if (child.name.startsWith('树')) {
             this.trees.push(child)
           }
@@ -504,34 +577,23 @@ export default class Viewer {
             const treeGeometry = tree.geometry
             const treeMaterial = tree.material
             treeMaterial.alphaTest = 0.8
-            // treeMaterial.side = THREE.DoubleSide
-            // treeMaterial.transparent = true
-            // treeMaterial.opacity = 1
-
             const instancedTrees = new THREE.InstancedMesh(
               treeGeometry,
               treeMaterial,
               this.trees.length,
             )
             instancedTrees.castShadow = true
-            // instancedTrees.receiveShadow = true
-            // 确保矩阵更新
-            instancedTrees.instanceMatrix.setUsage(THREE.DynamicDrawUsage)
 
             for (let i = this.trees.length - 1; i >= 0; i--) {
               const tree = this.trees[i]
               // 设置实例矩阵
               instancedTrees.setMatrixAt(i, tree.matrixWorld)
               // 从场景中移除原模型
-              this.gltfScene.remove(tree)
+              gltfScene.remove(tree)
             }
-
-            // 确保实例矩阵更新
-            instancedTrees.instanceMatrix.needsUpdate = true
-            this.gltfScene.add(instancedTrees)
-            this.render()
-            this.isRotating = 1
-            // this.startRotation()
+            gltfScene.add(instancedTrees)
+            this.gltfScene = gltfScene
+            this.status = '旋转'
           },
           (xhr) => {
             this.onProgress('tree.glb', xhr)
@@ -580,6 +642,8 @@ export default class Viewer {
       })
   }
   update() {
+    if (!this.gltfScene) return
+
     this.fans.forEach((fan, i) => {
       fan.rotation.y += this.step[i]
     })
@@ -589,65 +653,91 @@ export default class Viewer {
     if (this.grid_pipeline) this.grid_pipeline.offset.x -= 0.01
     if (this.building_pipeline) this.building_pipeline.offset.x -= 0.01
 
-    if (this.gltfScene && this.isRotating === 1) {
-      // 让相机始终看向场景中心
-      // this.scene.rotation.y += 0.01
+    // this.startRotation()
+    if (this.status === '旋转') {
+      this.scene.rotation.y += 0.01
+    } else if (this.calculatedPath.length > 0) {
+      this.updateCameraPosition()
+    } else {
+      $Bus.emit('fly', false)
     }
+
     this.render()
   }
   setTargetDirection(pt) {
     const player = this.camera
-    // pt.y = player.position.y
     const quaternion = player.quaternion.clone()
     player.lookAt(pt)
     this.quaternion = player.quaternion.clone()
     player.quaternion.copy(quaternion)
   }
-  fly = (name) => {}
+  updateCameraPosition() {
+    const target = this.calculatedPath[0]
+    const player = this.camera
+    const vel = target.clone().sub(player.position)
+    const preDistanceSq = player.position.distanceTo(target)
 
-  stopRotation() {
-    // const currentRotation = this.scene.rotation.y % (2 * Math.PI)
-    // let shortestRotation
-    // if (currentRotation > Math.PI) {
-    //   shortestRotation = 2 * Math.PI - currentRotation
-    // } else {
-    //   shortestRotation = -currentRotation
-    // }
-
-    // const duration = Math.abs(shortestRotation) * 5
-
-    // 场景旋转动画
-    // gsap.to(this.scene.rotation, {
-    //   y: `+=${shortestRotation}`,
-    //   duration: duration,
-    //   ease: 'power2.out',
-    //   onComplete: () => {
-    //     this.isRotating = 2
-    //   },
-    //   onUpdate: () => {
-    //     // 获取当前动画进度，并确保在0到1之间
-    //     const progress = this.scene.rotation.y / shortestRotation + 1
-    //     console.log('progress', progress)
-
-    //     // 遍历所有发光物体，让它们逐渐显示
-    //     this.bloomObjects.forEach((obj) => {
-    //       if (obj.material) {
-    //         obj.visible = true // 动画开始时确保物体可见
-    //         obj.material.opacity = progress // 根据进度设置透明度
-    //       }
-    //     })
-    //   },
-    // })
-    this.isRotating = 2
-    this.scene.rotation.y = 0
-    this.bloomObjects.forEach((obj) => {
-      if (obj.material) {
-        obj.visible = true
-        obj.material.opacity = 1 // 根据进度设置透明度
+    if (preDistanceSq > 0.8) {
+      // 计算剩余路径总长度
+      let remainingLength = player.position.distanceTo(target)
+      for (let i = 1; i < this.calculatedPath.length - 1; i++) {
+        remainingLength += this.calculatedPath[i].distanceTo(this.calculatedPath[i + 1])
       }
-    })
-    this.intersectObjects.forEach((obj) => {
-      obj.visible = true
-    })
+
+      // 计算路径完成百分比
+      const totalPathLength = 100 // 总路径长度参考值
+      const progressPercent = remainingLength / totalPathLength
+
+      // 根据完成百分比计算lookAt点
+      const currentLookAt = this.startLookAt.lerp(this.endLookAt, 1 - progressPercent)
+
+      // 相机朝向当前lookAt点
+      player.lookAt(currentLookAt)
+
+      // 移动相机
+      vel.normalize()
+      const speedFactor = 0.1 + (remainingLength / totalPathLength) * 0.9
+      const speed = Math.max(1.5 * speedFactor, 0.5)
+      player.position.add(vel.multiplyScalar(speed))
+    } else {
+      this.calculatedPath.shift()
+      if (this.calculatedPath.length > 0) {
+        this.setTargetDirection(this.calculatedPath[0])
+      } else {
+        player.position.copy(target)
+      }
+    }
+  }
+  fly = (flyPath, type) => {
+    this.calculatedPath = flyPath.path.getPoints(10)
+    this.startLookAt = flyPath.startLookAt
+    this.endLookAt = flyPath.endLookAt
+    if (type.endsWith('返回')) {
+      this.solarPanelA.material.opacity = 1
+      this.solarPanelB.material.opacity = 1
+      this.bloomObjects.forEach((obj) => {
+        obj.visible = true
+      })
+      this.intersectObjects.forEach((obj) => {
+        obj.visible = true
+      })
+    } else {
+      this.solarPanelA.material.opacity = 0.4
+      this.solarPanelB.material.opacity = 0.4
+      this.bloomObjects.forEach((obj) => {
+        obj.visible = false
+      })
+      this.intersectObjects.forEach((obj) => {
+        obj.visible = false
+      })
+    }
+  }
+
+  startRotation() {
+    this.status = '旋转'
+  }
+  stopRotation() {
+    this.status = '暂停'
+    this.scene.rotation.y = 0
   }
 }

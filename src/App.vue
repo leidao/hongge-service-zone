@@ -8,13 +8,13 @@
 <script setup name="App">
 import { RouterLink, RouterView } from 'vue-router'
 import autofit from 'autofit.js'
-import { onMounted, onUnmounted, ref, nextTick } from 'vue';
+import { onMounted, onUnmounted, ref, nextTick } from 'vue'
 import ProjectProfile from '@/views/project-profile/index.vue'
 import CarbonReduction from '@/views/carbon-reduction/index.vue'
 import CarbonEmission from '@/views/carbon-emission/index.vue'
-import dayjs from 'dayjs';
+import dayjs from 'dayjs'
 import bg from '@/assets/bg.png'
-const time = ref("")
+const time = ref('')
 const getTime = () => {
   time.value = dayjs().format(`YYYY-MM-DD     HH:mm:ss`)
 }
@@ -35,9 +35,9 @@ const ani = () => {
     if (carousel.value?.activeIndex === 0) {
       projectProfile.value?.getViewer()?.update()
     } else if (carousel.value?.activeIndex === 1) {
-      // carbonEmission.value?.getViewer()?.update()
+      carbonEmission.value?.getViewer()?.update()
     } else if (carousel.value?.activeIndex === 2) {
-      // carbonReduction.value?.getViewer()?.update()
+      carbonReduction.value?.getViewer()?.update()
     }
     ani()
   })
@@ -52,15 +52,12 @@ onMounted(() => {
   })
 })
 onUnmounted(() => {
-  autofit.off();
+  autofit.off()
 })
-
-
 
 const goto = (value) => {
   carousel.value?.setActiveItem(value)
 }
-
 </script>
 
 <template>
@@ -72,21 +69,44 @@ const goto = (value) => {
             <el-image class="w-100% h-64px" :src="bg" fit="fill" />
             <div class="absolute left-0px top-0px h-64px pl-420px flex items-center">
               <el-space wrap :size="32">
-                <el-button link class="btn_wrap" :class="{ 'is-active': carousel?.activeIndex === 0 }"
-                  @click="goto(0)">项目简介</el-button>
-                <el-button link class="btn_wrap" :class="{ 'is-active': carousel?.activeIndex === 1 }"
-                  @click="goto(1)">碳排分析</el-button>
-                <el-button link class="btn_wrap" :class="{ 'is-active': carousel?.activeIndex === 2 }"
-                  @click="goto(2)">减碳分析</el-button>
+                <el-button
+                  link
+                  class="btn_wrap"
+                  :class="{ 'is-active': carousel?.activeIndex === 0 }"
+                  @click="goto(0)"
+                  >项目总览</el-button
+                >
+                <el-button
+                  link
+                  class="btn_wrap"
+                  :class="{ 'is-active': carousel?.activeIndex === 1 }"
+                  @click="goto(1)"
+                  >碳排分析</el-button
+                >
+                <el-button
+                  link
+                  class="btn_wrap"
+                  :class="{ 'is-active': carousel?.activeIndex === 2 }"
+                  @click="goto(2)"
+                  >减碳分析</el-button
+                >
               </el-space>
             </div>
-            <div class="absolute right-10px top-0px w-180px h-64px text-16px font-800 flex items-center text-#fff">
+            <div
+              class="absolute right-10px top-0px w-180px h-64px text-16px font-800 flex items-center text-#fff"
+            >
               {{ time }}
             </div>
           </div>
           <div class="wrap">
-            <el-carousel class="w-100%" :autoplay="false" ref="carousel" height="100%" arrow="never"
-              indicator-position="none">
+            <el-carousel
+              class="w-100%"
+              :autoplay="false"
+              ref="carousel"
+              height="100%"
+              arrow="never"
+              indicator-position="none"
+            >
               <el-carousel-item>
                 <ProjectProfile ref="projectProfile"></ProjectProfile>
               </el-carousel-item>
@@ -116,8 +136,6 @@ const goto = (value) => {
   position: relative;
   background: linear-gradient(-90deg, #0e4036, #022d29);
 
-
-
   .wrap {
     width: 100%;
     height: calc(100% - 64px);
@@ -137,16 +155,16 @@ const goto = (value) => {
     height: 30px;
     border: 1px solid;
     background: linear-gradient(180deg, #01774f, #0c6037);
-    border-image: linear-gradient(180deg, #51C4AD, #26958A) 1 1;
+    border-image: linear-gradient(180deg, #51c4ad, #26958a) 1 1;
 
     &:hover {
-      background: linear-gradient(180deg, #51C4AD, #26958A);
+      background: linear-gradient(180deg, #51c4ad, #26958a);
       border-image: linear-gradient(180deg, #01774f, #0c6037) 1 1;
     }
 
     &.is-active {
       color: #fff;
-      background: linear-gradient(180deg, #51C4AD, #26958A);
+      background: linear-gradient(180deg, #51c4ad, #26958a);
       border-image: linear-gradient(180deg, #01774f, #0c6037) 1 1;
     }
   }

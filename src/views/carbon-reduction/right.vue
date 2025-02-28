@@ -9,26 +9,41 @@
   <!-- 右侧 -->
   <div class="aside-right z-[14]">
     <el-image class="w-430px h-100%" :src="r2" fit="fill" />
-    <div class="absolute left-0px top-0px w-430px h-100% ">
+    <div class="absolute left-0px top-0px w-430px h-100%">
       <div class="float-right">
         <div class="w-400px h-50px relative mt-10px">
           <el-image class="w-394px h-50px float-right" :src="r1" fit="fill" />
           <div
-            class="absolute left-0px bottom-0px w-394px h-50px pr-40px pt-12px font-800 text-end text-16px text-#97FFDB">
-            网供电日累计电量/碳排放量
+            class="absolute left-0px bottom-0px w-394px h-50px pr-40px pt-12px font-800 text-end text-16px text-#97FFDB"
+          >
+            碳排放分析
           </div>
         </div>
         <div class="w-400px relative mt-10px">
           <div class="flex justify-between">
             <div class="w-213px">
-              <Backdrop :max="200" :skew="9" unit="kw" title="网供电日累计" :buttons="buttonsA" @click="handleClick">
-                <div class="ml-0px  w-223px h-100%">
+              <Backdrop
+                :max="200"
+                :skew="9"
+                unit="kw"
+                title="网供电日累计"
+                :buttons="buttonsA"
+                @click="handleClick"
+              >
+                <div class="ml-0px w-223px h-100%">
                   <Chart height="100%" :options="chart1Option"></Chart>
                 </div>
               </Backdrop>
             </div>
             <div class="w-174px">
-              <Backdrop :max="200" :skew="0" unit="kw" title="风电日累计" :buttons="buttonsB" @click="handleClick">
+              <Backdrop
+                :max="200"
+                :skew="0"
+                unit="kw"
+                title="风电日累计"
+                :buttons="buttonsB"
+                @click="handleClick"
+              >
                 <div class="w-174px h-100%">
                   <Chart height="100%" :options="chart2Option"></Chart>
                 </div>
@@ -37,28 +52,42 @@
           </div>
           <div class="flex justify-between mt-30px">
             <div class="w-164px ml-56px">
-              <Backdrop :max="200" :skew="3" unit="kw" title="光伏日累计" :buttons="buttonsA" @click="handleClick">
-                <div class="ml-0px  w-174px h-100%">
+              <Backdrop
+                :max="200"
+                :skew="3"
+                unit="kw"
+                title="光伏日累计"
+                :buttons="buttonsA"
+                @click="handleClick"
+              >
+                <div class="ml-0px w-174px h-100%">
                   <Chart height="100%" :options="chart3Option"></Chart>
                 </div>
               </Backdrop>
             </div>
             <div class="w-164px">
-              <Backdrop :max="200" :skew="0" unit="kw" title="氢能日累计" :buttons="buttonsB" @click="handleClick">
+              <Backdrop
+                :max="200"
+                :skew="0"
+                unit="kw"
+                title="氢能日累计"
+                :buttons="buttonsB"
+                @click="handleClick"
+              >
                 <div class="w-164px h-100%">
                   <Chart height="100%" :options="chart4Option"></Chart>
                 </div>
               </Backdrop>
             </div>
           </div>
-
         </div>
       </div>
       <div class="float-right mt-20px">
         <div class="w-340px h-50px relative">
           <el-image class="w-340px h-50px float-right" :src="r1" fit="fill" />
           <div
-            class="absolute left-0px bottom-0px w-312px h-50px pr-36px pt-12px font-800 text-end text-16px text-#97FFDB">
+            class="absolute left-0px bottom-0px w-340px h-50px pr-36px pt-12px font-800 text-end text-16px text-#97FFDB"
+          >
             减碳量总体态势
           </div>
         </div>
@@ -66,16 +95,14 @@
           <Chart height="188px" :options="chart5Option"></Chart>
         </div>
       </div>
-
     </div>
   </div>
-
 </template>
 
 <script setup>
 import Chart from '@/components/chart/chart.vue'
-import * as echarts from "echarts"
-import { onMounted, onUnmounted, nextTick, ref, reactive, shallowRef } from 'vue';
+import * as echarts from 'echarts'
+import { onMounted, onUnmounted, nextTick, ref, reactive, shallowRef } from 'vue'
 import day from 'dayjs'
 import r1 from '@/assets/carbon-reduction/r1.png'
 import r2 from '@/assets/carbon-reduction/r2.png'
@@ -85,22 +112,22 @@ import Backdrop from '@/components/backdrop/index.vue'
 const buttonsA = [
   {
     label: '电量',
-    value: '1'
+    value: '1',
   },
   {
     label: '碳排放量',
-    value: '2'
-  }
+    value: '2',
+  },
 ]
 const buttonsB = [
   {
     label: '电量',
-    value: '1'
+    value: '1',
   },
   {
     label: '减碳量',
-    value: '2'
-  }
+    value: '2',
+  },
 ]
 const handleClick = (item) => {
   console.log(item)
@@ -108,19 +135,20 @@ const handleClick = (item) => {
 const chart1Option = {
   tooltip: {
     trigger: 'axis',
-    axisPointer: { // 坐标轴指示器，坐标轴触发有效
-      type: 'line' // 默认为直线，可选为：'line' | 'shadow'
-    }
+    axisPointer: {
+      // 坐标轴指示器，坐标轴触发有效
+      type: 'line', // 默认为直线，可选为：'line' | 'shadow'
+    },
   },
   grid: {
     left: 56,
     right: 14,
     bottom: 5,
     top: 6,
-    containLabel: true
+    containLabel: true,
   },
   legend: {
-    show: false
+    show: false,
   },
   xAxis: {
     boundaryGap: false,
@@ -130,15 +158,15 @@ const chart1Option = {
       show: true,
       lineStyle: {
         color: '#036744',
-      }
+      },
     },
     axisLabel: {
       fontSize: 10,
       color: '#BBBAB5',
       // alignMinLabel: 'left',
       // alignMaxLabel: 'right',
-      margin: 8
-    }
+      margin: 8,
+    },
   },
 
   yAxis: {
@@ -146,16 +174,16 @@ const chart1Option = {
     axisLine: {
       show: false,
     },
-    type: "value",
+    type: 'value',
     splitLine: {
       show: false,
       lineStyle: {
         color: '#036744',
-        type: 'dashed'
-      }
+        type: 'dashed',
+      },
     },
     axisTick: {
-      show: false
+      show: false,
     },
     axisLabel: {
       show: false,
@@ -169,41 +197,42 @@ const chart1Option = {
       showAllSymbol: true, //显示所有图形。
       symbol: 'none',
       lineStyle: {
-        color: "#FF0606",
-        width: 2
+        color: '#FF0606',
+        width: 2,
       },
       areaStyle: {
         color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
           {
             offset: 0,
-            color: 'rgba(255,6,6,0.38)'
+            color: 'rgba(255,6,6,0.38)',
           },
           {
             offset: 1,
-            color: 'rgba(255,6,6,0.1)'
-          }
-        ])
+            color: 'rgba(255,6,6,0.1)',
+          },
+        ]),
       },
-      data: [40, 130, 70, 150, 190, 60, 200]
-    }
-  ]
+      data: [40, 130, 70, 150, 190, 60, 200],
+    },
+  ],
 }
 const chart2Option = {
   tooltip: {
     trigger: 'axis',
-    axisPointer: { // 坐标轴指示器，坐标轴触发有效
-      type: 'line' // 默认为直线，可选为：'line' | 'shadow'
-    }
+    axisPointer: {
+      // 坐标轴指示器，坐标轴触发有效
+      type: 'line', // 默认为直线，可选为：'line' | 'shadow'
+    },
   },
   grid: {
     left: 16,
     right: 14,
     bottom: 5,
     top: 6,
-    containLabel: true
+    containLabel: true,
   },
   legend: {
-    show: false
+    show: false,
   },
   xAxis: {
     boundaryGap: false,
@@ -213,13 +242,13 @@ const chart2Option = {
       show: true,
       lineStyle: {
         color: '#036744',
-      }
+      },
     },
     axisLabel: {
       fontSize: 10,
       color: '#BBBAB5',
-      margin: 8
-    }
+      margin: 8,
+    },
   },
 
   yAxis: {
@@ -227,16 +256,16 @@ const chart2Option = {
     axisLine: {
       show: false,
     },
-    type: "value",
+    type: 'value',
     splitLine: {
       show: false,
       lineStyle: {
         color: '#036744',
-        type: 'dashed'
-      }
+        type: 'dashed',
+      },
     },
     axisTick: {
-      show: false
+      show: false,
     },
     axisLabel: {
       show: false,
@@ -250,41 +279,42 @@ const chart2Option = {
       showAllSymbol: true, //显示所有图形。
       symbol: 'none',
       lineStyle: {
-        color: "#3DECFF",
-        width: 2
+        color: '#3DECFF',
+        width: 2,
       },
       areaStyle: {
         color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
           {
             offset: 0,
-            color: 'rgba(61,236,255,0.38)'
+            color: 'rgba(61,236,255,0.38)',
           },
           {
             offset: 1,
-            color: 'rgba(61,236,255,0.1)'
-          }
-        ])
+            color: 'rgba(61,236,255,0.1)',
+          },
+        ]),
       },
-      data: [40, 130, 70, 150, 190, 60, 200]
-    }
-  ]
+      data: [40, 130, 70, 150, 190, 60, 200],
+    },
+  ],
 }
 const chart3Option = {
   tooltip: {
     trigger: 'axis',
-    axisPointer: { // 坐标轴指示器，坐标轴触发有效
-      type: 'line' // 默认为直线，可选为：'line' | 'shadow'
-    }
+    axisPointer: {
+      // 坐标轴指示器，坐标轴触发有效
+      type: 'line', // 默认为直线，可选为：'line' | 'shadow'
+    },
   },
   grid: {
     left: 26,
     right: 14,
     bottom: 5,
     top: 6,
-    containLabel: true
+    containLabel: true,
   },
   legend: {
-    show: false
+    show: false,
   },
   xAxis: {
     boundaryGap: false,
@@ -294,15 +324,15 @@ const chart3Option = {
       show: true,
       lineStyle: {
         color: '#036744',
-      }
+      },
     },
     axisLabel: {
       fontSize: 10,
       color: '#BBBAB5',
       // alignMinLabel: 'left',
       // alignMaxLabel: 'right',
-      margin: 8
-    }
+      margin: 8,
+    },
   },
 
   yAxis: {
@@ -310,16 +340,16 @@ const chart3Option = {
     axisLine: {
       show: false,
     },
-    type: "value",
+    type: 'value',
     splitLine: {
       show: false,
       lineStyle: {
         color: '#036744',
-        type: 'dashed'
-      }
+        type: 'dashed',
+      },
     },
     axisTick: {
-      show: false
+      show: false,
     },
     axisLabel: {
       show: false,
@@ -333,41 +363,42 @@ const chart3Option = {
       showAllSymbol: true, //显示所有图形。
       symbol: 'none',
       lineStyle: {
-        color: "#FFE600",
-        width: 2
+        color: '#FFE600',
+        width: 2,
       },
       areaStyle: {
         color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
           {
             offset: 0,
-            color: 'rgba(255,230,0,0.38)'
+            color: 'rgba(255,230,0,0.38)',
           },
           {
             offset: 1,
-            color: 'rgba(255,230,0,0.1)'
-          }
-        ])
+            color: 'rgba(255,230,0,0.1)',
+          },
+        ]),
       },
-      data: [40, 130, 70, 150, 190, 60, 200]
-    }
-  ]
+      data: [40, 130, 70, 150, 190, 60, 200],
+    },
+  ],
 }
 const chart4Option = {
   tooltip: {
     trigger: 'axis',
-    axisPointer: { // 坐标轴指示器，坐标轴触发有效
-      type: 'line' // 默认为直线，可选为：'line' | 'shadow'
-    }
+    axisPointer: {
+      // 坐标轴指示器，坐标轴触发有效
+      type: 'line', // 默认为直线，可选为：'line' | 'shadow'
+    },
   },
   grid: {
     left: 16,
     right: 14,
     bottom: 5,
     top: 6,
-    containLabel: true
+    containLabel: true,
   },
   legend: {
-    show: false
+    show: false,
   },
   xAxis: {
     boundaryGap: false,
@@ -377,13 +408,13 @@ const chart4Option = {
       show: true,
       lineStyle: {
         color: '#036744',
-      }
+      },
     },
     axisLabel: {
       fontSize: 10,
       color: '#BBBAB5',
-      margin: 8
-    }
+      margin: 8,
+    },
   },
 
   yAxis: {
@@ -391,16 +422,16 @@ const chart4Option = {
     axisLine: {
       show: false,
     },
-    type: "value",
+    type: 'value',
     splitLine: {
       show: false,
       lineStyle: {
         color: '#036744',
-        type: 'dashed'
-      }
+        type: 'dashed',
+      },
     },
     axisTick: {
-      show: false
+      show: false,
     },
     axisLabel: {
       show: false,
@@ -414,35 +445,33 @@ const chart4Option = {
       showAllSymbol: true, //显示所有图形。
       symbol: 'none',
       lineStyle: {
-        color: "#0972FF",
-        width: 2
+        color: '#0972FF',
+        width: 2,
       },
       areaStyle: {
         color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
           {
             offset: 0,
-            color: 'rgba(9,114,255,0.38)'
+            color: 'rgba(9,114,255,0.38)',
           },
           {
             offset: 1,
-            color: 'rgba(9,114,255,0.1)'
-          }
-        ])
+            color: 'rgba(9,114,255,0.1)',
+          },
+        ]),
       },
-      data: [40, 130, 70, 150, 190, 60, 200]
-    }
-  ]
+      data: [40, 130, 70, 150, 190, 60, 200],
+    },
+  ],
 }
 
-
 const colorMap = {
-  '风电减碳量': '#00C2FF',
-  '光伏减碳量': '#00FF2B',
-  '氢能减碳量': '#FFE600',
-  '储能减碳量': '#E85318',
-  '其他减碳量': '#1FF0A5'
-};
-
+  风电减碳量: '#00C2FF',
+  光伏减碳量: '#00FF2B',
+  氢能减碳量: '#FFE600',
+  储能减碳量: '#E85318',
+  其他减碳量: '#1FF0A5',
+}
 
 const chart5Option = reactive({
   xAxis: {
@@ -479,26 +508,24 @@ const chart5Option = reactive({
       color: '#fff',
     },
     formatter: function (name) {
-      const data = chart5Option.series[3].data;
-      const target = data.find(item => item.name === name);
+      const data = chart5Option.series[3].data
+      const target = data.find((item) => item.name === name)
 
       if (target) {
-        return [
-          `{name|${name}}  {value|${target.value.toFixed(2)}%}`,
-        ].join('');
+        return [`{name|${name}}  {value|${target.value.toFixed(2)}%}`].join('')
       }
-      return name;
+      return name
     },
     textStyle: {
       rich: {
         name: {
-          color: '#fff'
+          color: '#fff',
         },
         value: {
-          color: '#fff'
-        }
-      }
-    }
+          color: '#fff',
+        },
+      },
+    },
   },
   series: [
     {
@@ -634,7 +661,7 @@ const chart5Option = reactive({
       },
       data: [
         {
-          value: 22.30,
+          value: 22.3,
           name: '风电减碳量',
           itemStyle: {
             color: '#00C2FF',
@@ -667,7 +694,7 @@ const chart5Option = reactive({
           itemStyle: {
             color: '#1FF0A5',
           },
-        }
+        },
       ],
     },
   ],
@@ -736,14 +763,9 @@ const chart5Option = reactive({
   ],
 })
 
-onMounted(() => {
+onMounted(() => {})
 
-
-
-})
-
-onUnmounted(() => {
-})
+onUnmounted(() => {})
 </script>
 
 <style lang="scss" scoped>

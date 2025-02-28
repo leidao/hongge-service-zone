@@ -22,12 +22,6 @@
 - Autofit.js
 - Day.js
 
-## 项目预览
-
-![Screenshot](image.png)
-![Screenshot](image2.png)
-![Screenshot](image3.png)
-
 ## 快速开始
 
 ### 安装依赖

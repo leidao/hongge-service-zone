@@ -116,7 +116,7 @@ class LoadingBar {
     // console.log(assets, ploaded, ptotal, delta, progress, size)
 
     // this.progress = ploaded / ptotal
-    this.text.innerHTML = `当前已加载${progress}M/10.5M。`
+    this.text.innerHTML = `当前已加载${progress}M/10.55M。`
   }
 }
 
