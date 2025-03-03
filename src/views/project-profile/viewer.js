@@ -51,12 +51,23 @@ const darkMaterial = new THREE.MeshBasicMaterial({ color: 'black' })
 const materials = {}
 const mouse = new THREE.Vector2()
 
-// 创建画布来处理图片数据
-const canvas = document.createElement('canvas')
-const ctx = canvas.getContext('2d')
-const updateMaterialMap = (child) => {
+// 将16进制颜色转换为RGB
+const hexToRgb = (hex) => {
+  const rgb = parseInt(hex.replace('#', ''), 16)
+  return {
+    r: (rgb >> 16) & 0xff, // 获取红色分量
+    g: (rgb >> 8) & 0xff, // 获取绿色分量
+    b: rgb & 0xff, // 获取蓝色分量
+  }
+}
+
+const updateMaterialMap = async (child, color) => {
+  // 创建画布来处理图片数据
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d')
+  const textureLoader = new THREE.TextureLoader()
   // 获取原始贴图
-  const originalTexture = child.material.map
+  const originalTexture = await textureLoader.loadAsync('img/flow_line.png')
 
   // 设置画布尺寸为贴图尺寸
   canvas.width = originalTexture.image.width
@@ -75,18 +86,19 @@ const updateMaterialMap = (child) => {
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
   const data = imageData.data
 
+  const rgb = hexToRgb(color)
+
   // 修改每个像素的颜色为红色，保持原有的alpha值
   for (let i = 0; i < data.length; i += 4) {
-    // console.log('data===', data[i], data[i + 1], data[i + 2], data[i + 3])
-    if (
-      (data[i] > 110 || data[i] < 130) &&
-      (data[i + 1] > 230 || data[i + 1] < 250) &&
-      (data[i + 2] > 90 || data[i + 2] < 171)
-    ) {
-      data[i] = 255 // R
-      data[i + 1] = 0 // G
-      data[i + 2] = 0 // B
-      // data[i + 3] 保持不变 (Alpha)
+    // 根据数据动态调整 RGB 值（示例：红色增强）
+    if (data[i] === 54 && data[i + 1] === 250 && data[i + 2] === 46) {
+      data[i] = rgb.r // R
+      data[i + 1] = rgb.g // G
+      data[i + 2] = rgb.b // B
+    } else {
+      data[i] = 230 // R
+      data[i + 1] = 130 // G
+      data[i + 2] = 131 // B
     }
   }
 
@@ -100,12 +112,14 @@ const updateMaterialMap = (child) => {
   // modifiedLink.click()
 
   // 创建新的纹理
-  const newTexture = new THREE.Texture(canvas)
+  const newTexture = new THREE.CanvasTexture(canvas)
+  newTexture.colorSpace = THREE.SRGBColorSpace
   newTexture.needsUpdate = true
   newTexture.wrapS = THREE.RepeatWrapping
   newTexture.wrapT = THREE.RepeatWrapping
   newTexture.repeat.set(1, 1)
   child.material.map = newTexture
+  child.material.emissiveMap = newTexture
 }
 
 export default class Viewer {
@@ -143,7 +157,11 @@ export default class Viewer {
   bloomObjects = [] // 用于存储发光物体
   /** 计算路径 */
   calculatedPath = []
-
+  grid_pipeline = []
+  wind_pipeline = []
+  solar_pipeline = []
+  building_pipeline1 = []
+  building_pipeline2 = []
   constructor(container) {
     this.container = container
     this.clock = new THREE.Clock()
@@ -454,7 +472,7 @@ export default class Viewer {
         const gltfScene = gltf.scene
         this.scene.add(gltfScene)
         this.render()
-        gltf.scene.traverse((child) => {
+        gltf.scene.traverse(async (child) => {
           if (child.isMesh) {
             child.castShadow = true
             child.receiveShadow = true
@@ -471,33 +489,30 @@ export default class Viewer {
               this.bloomObjects.push(child)
             }
             if (child.name.startsWith('管道')) {
-              // 获取原始贴图
-              child.material.map.wrapS = THREE.RepeatWrapping
-              child.material.map.wrapT = THREE.RepeatWrapping
-              child.material.map.repeat.set(1, 1)
-              child.material.map.needsUpdate = true
+              if (['管道005', '管道'].includes(child.name)) {
+                child.name = '光伏管道'
+                this.solar_pipeline.push(child.material.map)
+              } else if (['管道002', '管道009', '管道010'].includes(child.name)) {
+                child.name = '风力管道'
+                this.wind_pipeline.push(child.material.map)
+              } else if (['管道004', '管道011'].includes(child.name)) {
+                child.name = '电网管道'
+                await updateMaterialMap(child, '#ff0000')
+                this.grid_pipeline.push(child.material.map)
+              } else if (['管道007', '管道008', '管道001'].includes(child.name)) {
+                child.name = '建筑管道'
+                await updateMaterialMap(child, '#ffff00')
+                this.building_pipeline1.push(child.material.map)
+              } else if (['管道006', '管道003'].includes(child.name)) {
+                child.name = '建筑管道'
+                await updateMaterialMap(child, '#ffff00')
+                this.building_pipeline2.push(child.material.map)
+              }
 
               this.bloomObjects.push(child)
               this.intersectObjects.push(child)
-              child.layers.enable(BLOOM_SCENE)
-              if (['管道'].includes(child.name)) {
-                child.name = '光伏管道'
-                // updateMaterialMap(child)
 
-                this.solar_pipeline1 = child.material.map
-              } else if (['管道005'].includes(child.name)) {
-                child.name = '光伏管道'
-                this.solar_pipeline2 = child.material.map
-              } else if (['管道002'].includes(child.name)) {
-                child.name = '风力管道'
-                this.wind_pipeline = child.material.map
-              } else if (['管道004'].includes(child.name)) {
-                child.name = '电网管道'
-                this.grid_pipeline = child.material.map
-              } else {
-                child.name = '建筑管道'
-                this.building_pipeline = child.material.map
-              }
+              child.layers.enable(BLOOM_SCENE)
             }
 
             if (['充电桩a', '充电桩b'].includes(child.name)) {
@@ -647,11 +662,26 @@ export default class Viewer {
     this.fans.forEach((fan, i) => {
       fan.rotation.y += this.step[i]
     })
-    if (this.solar_pipeline1) this.solar_pipeline1.offset.x += 0.01
-    if (this.solar_pipeline2) this.solar_pipeline2.offset.x += 0.01
-    if (this.wind_pipeline) this.wind_pipeline.offset.x -= 0.01
-    if (this.grid_pipeline) this.grid_pipeline.offset.x -= 0.01
-    if (this.building_pipeline) this.building_pipeline.offset.x -= 0.01
+    this.solar_pipeline.forEach((solar, i) => {
+      solar.offset.x += 0.01
+    })
+    this.wind_pipeline.forEach((wind, i) => {
+      wind.offset.x -= 0.01
+    })
+    this.grid_pipeline.forEach((grid, i) => {
+      grid.offset.x -= 0.01
+    })
+    this.building_pipeline1.forEach((grid, i) => {
+      grid.offset.x -= 0.01
+    })
+    this.building_pipeline2.forEach((building, i) => {
+      building.offset.x += 0.01
+    })
+    // if (this.solar_pipeline1) this.solar_pipeline1.offset.x += 0.01
+    // if (this.solar_pipeline2) this.solar_pipeline2.offset.x += 0.01
+    // if (this.wind_pipeline) this.wind_pipeline.offset.x -= 0.01
+    // if (this.grid_pipeline) this.grid_pipeline.offset.x -= 0.01
+    // if (this.building_pipeline) this.building_pipeline.offset.x -= 0.01
 
     // this.startRotation()
     if (this.status === '旋转') {

@@ -61,7 +61,7 @@ export default defineConfig({
       '/api': {
         // target: "http://jdphtest.nat300.top/",
         // target: "http://1081de84.r10.cpolar.top",
-        target: 'http://mm7rhy.natappfree.cc', //穿透地址
+        target: 'http://192.168.100.100:8090', //穿透地址
         // target: "http://192.168.43.37:8080/",
         // target: "http://localhost:3333/",
         // target: "http://10.41.233.36:8080/", // 内网地址
